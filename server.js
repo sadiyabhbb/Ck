@@ -1,62 +1,46 @@
-const express = require('express');
-const sendOtp = require('./src/osudpotro'); // OsudPotro OTP
-const sendShikhoSms = require('./src/shikho'); // Shikho SMS
+const express = require("express");
+const sendOtp = require("./src/osudpotro");   // OsudPotro OTP
+const sendShikhoSms = require("./src/shikho"); // Shikho SMS
 
 const app = express();
+app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-
 // Health check
-app.get('/', (req, res) => {
-  res.send('Server running ✅');
+app.get("/", (req, res) => {
+  res.send("Unified SMS/OTP Server running ✅");
 });
 
-// =========================
-// OsudPotro OTP API
-// =========================
-app.get('/send-otp', async (req, res) => {
-  const mobile = req.query.mobile;
-  if (!mobile) {
-    return res.status(400).json({ error: 'Mobile number is required' });
+// Unified send endpoint
+app.all("/send", async (req, res) => {
+  // GET: req.query, POST: req.body
+  const number = req.query.number || req.body.number;
+  const type = req.query.type || req.body.type || "student";
+  const amount = parseInt(req.query.amount || req.body.amount) || 1;
+
+  if (!number) return res.status(400).json({ error: "Mobile number is required" });
+
+  const results = [];
+
+  for (let i = 0; i < amount; i++) {
+    try {
+      const otpResponse = await sendOtp(number);
+      const smsResponse = await sendShikhoSms(number, type);
+
+      results.push({
+        attempt: i + 1,
+        otp: otpResponse,
+        sms: smsResponse
+      });
+    } catch (err) {
+      results.push({
+        attempt: i + 1,
+        error: err.message
+      });
+    }
   }
 
-  try {
-    const response = await sendOtp(mobile);
-    res.json(response);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// =========================
-// Shikho SMS API
-// =========================
-
-// POST request
-app.post('/send-sms', async (req, res) => {
-  const phone = req.body.phone;
-  const type = req.body.type;
-
-  try {
-    const response = await sendShikhoSms(phone, type);
-    res.json(response);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET request (browser friendly)
-app.get('/send-sms', async (req, res) => {
-  const phone = req.query.phone;
-  const type = req.query.type;
-
-  try {
-    const response = await sendShikhoSms(phone, type);
-    res.json(response);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  res.json(results);
 });
 
 app.listen(PORT, () => {
