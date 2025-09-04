@@ -1,6 +1,7 @@
 const express = require("express");
-const sendOtp = require("./src/osudpotro");   // OsudPotro OTP
+const sendOtp = require("./src/osudpotro");    // OsudPotro OTP
 const sendShikhoSms = require("./src/shikho"); // Shikho SMS
+const sendBikroyOtp = require("./src/bikroy"); // Bikroy OTP
 
 const app = express();
 app.use(express.json());
@@ -15,7 +16,6 @@ app.get("/", (req, res) => {
 // Unified send endpoint
 // =========================
 app.all("/send", async (req, res) => {
-  // GET: req.query, POST: req.body
   const number = req.query.number || req.body.number;
   const amount = parseInt(req.query.amount || req.body.amount) || 1;
   const type = req.query.type || req.body.type || "student"; // default auto
@@ -26,13 +26,20 @@ app.all("/send", async (req, res) => {
 
   for (let i = 0; i < amount; i++) {
     try {
+      // OsudPotro OTP
       const otpResponse = await sendOtp(number);
+
+      // Shikho SMS
       const smsResponse = await sendShikhoSms(number, type);
+
+      // Bikroy OTP
+      const bikroyResponse = await sendBikroyOtp(number);
 
       results.push({
         attempt: i + 1,
         otp: otpResponse,
-        sms: smsResponse
+        sms: smsResponse,
+        bikroy: bikroyResponse
       });
     } catch (err) {
       results.push({
