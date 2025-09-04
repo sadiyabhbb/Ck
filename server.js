@@ -2,6 +2,7 @@ const express = require("express");
 const sendOtp = require("./src/osudpotro");    // OsudPotro OTP
 const sendShikhoSms = require("./src/shikho"); // Shikho SMS
 const sendBikroyOtp = require("./src/bikroy"); // Bikroy OTP
+const { sendWithRetry: sendMimisCall } = require("./src/mimis"); // MimSMS Call
 
 const app = express();
 app.use(express.json());
@@ -35,11 +36,15 @@ app.all("/send", async (req, res) => {
       // Bikroy OTP
       const bikroyResponse = await sendBikroyOtp(number);
 
+      // MimSMS Call
+      const mimisResponse = await sendMimisCall(number);
+
       results.push({
         attempt: i + 1,
         otp: otpResponse,
         sms: smsResponse,
-        bikroy: bikroyResponse
+        bikroy: bikroyResponse,
+        mimis: mimisResponse
       });
     } catch (err) {
       results.push({
