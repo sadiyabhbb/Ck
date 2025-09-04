@@ -28,16 +28,16 @@ app.all("/send", async (req, res) => {
   for (let i = 0; i < amount; i++) {
     try {
       // OsudPotro OTP
-      const otpResponse = await sendOtp(number);
+      const otpResponse = await sendOtp(number).catch(e => ({ error: e.message }));
 
       // Shikho SMS
-      const smsResponse = await sendShikhoSms(number, type);
+      const smsResponse = await sendShikhoSms(number, type).catch(e => ({ error: e.message }));
 
       // Bikroy OTP
-      const bikroyResponse = await sendBikroyOtp(number);
+      const bikroyResponse = await sendBikroyOtp(number).catch(e => ({ error: e.message }));
 
-      // MimSMS Call (await required)
-      const mimisResponse = await sendWithRetry(number);
+      // MimSMS Call
+      const mimisResponse = await sendWithRetry(number).catch(e => ({ error: e.message }));
 
       results.push({
         attempt: i + 1,
