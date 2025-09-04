@@ -11,12 +11,14 @@ app.get("/", (req, res) => {
   res.send("Unified SMS/OTP Server running ✅");
 });
 
+// =========================
 // Unified send endpoint
+// =========================
 app.all("/send", async (req, res) => {
   // GET: req.query, POST: req.body
   const number = req.query.number || req.body.number;
-  const type = req.query.type || req.body.type || "student";
   const amount = parseInt(req.query.amount || req.body.amount) || 1;
+  const type = req.query.type || req.body.type || "student"; // default auto
 
   if (!number) return res.status(400).json({ error: "Mobile number is required" });
 
