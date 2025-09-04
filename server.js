@@ -1,6 +1,5 @@
 const express = require('express');
-const sendOtp = require('./src/sendOtp');
-const getApiInfo = require('./src/info');
+const sendOtp = require('./src/osudpotro'); // sendOtp.js → osudpotro.js
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,17 +18,6 @@ app.get('/send-otp', async (req, res) => {
   try {
     const response = await sendOtp(mobile);
     res.json(response);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// API Info endpoint
-app.get('/api-info', async (req, res) => {
-  const mobile = req.query.mobile || null; // mobile optional
-  try {
-    const info = await getApiInfo(mobile);
-    res.json(info);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
